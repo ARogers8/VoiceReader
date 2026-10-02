@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "VoiceReader",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Highlight text, right-click, and have it read aloud. Choose the voice, speed, pitch and volume.",
-  "permissions": ["contextMenus", "tts", "storage", "scripting", "activeTab"],
+  "permissions": ["contextMenus", "tts", "storage", "scripting", "activeTab", "offscreen"],
+  "host_permissions": ["https://api.elevenlabs.io/*", "https://api.openai.com/*"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

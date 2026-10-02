@@ -1,4 +1,5 @@
 import { loadSettings } from "./settings.js";
+import { splitForNarration } from "./providers.js";
 
 const MENU_READ = "voicereader-read";
 const MENU_STOP = "voicereader-stop";
@@ -25,7 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === MENU_STOP) {
-    chrome.tts.stop();
+    stopAll();
     return;
   }
   if (info.menuItemId === MENU_READ) {
@@ -38,7 +39,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === "stop-reading") {
-    chrome.tts.stop();
+    stopAll();
   } else if (command === "read-selection") {
     speak(await getSelectionFromTab(tab));
   }
@@ -50,8 +51,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg?.type === "stop") {
-    chrome.tts.stop();
+    stopAll();
     sendResponse({ ok: true });
+  }
+  if (msg?.type === "offscreen-error") {
+    reportError(msg.message);
   }
   return false;
 });
@@ -75,6 +79,25 @@ export async function speak(text, overrides) {
   if (!text) return;
 
   const settings = { ...(await loadSettings()), ...overrides };
+  await chrome.storage.local.set({ lastError: "" });
+  chrome.action.setBadgeText({ text: "" });
+
+  if (settings.provider === "chrome") {
+    chrome.runtime.sendMessage({ target: "offscreen", type: "stop" }).catch(() => {});
+    speakWithChrome(text, settings);
+  } else {
+    chrome.tts.stop();
+    await ensureOffscreen();
+    chrome.runtime.sendMessage({
+      target: "offscreen",
+      type: "play",
+      chunks: splitForNarration(text),
+      settings,
+    });
+  }
+}
+
+function speakWithChrome(text, settings) {
   const options = {
     rate: Number(settings.rate),
     pitch: Number(settings.pitch),
@@ -86,6 +109,34 @@ export async function speak(text, overrides) {
   splitIntoChunks(text).forEach((chunk, i) => {
     chrome.tts.speak(chunk, { ...options, enqueue: i > 0 });
   });
+}
+
+function stopAll() {
+  chrome.tts.stop();
+  chrome.runtime.sendMessage({ target: "offscreen", type: "stop" }).catch(() => {});
+}
+
+// Shown in the popup and as a "!" on the toolbar icon so a bad key or an
+// empty account doesn't just fail silently.
+function reportError(message) {
+  chrome.storage.local.set({ lastError: message });
+  chrome.action.setBadgeBackgroundColor({ color: "#dc2626" });
+  chrome.action.setBadgeText({ text: "!" });
+}
+
+let creatingOffscreen;
+async function ensureOffscreen() {
+  if (await chrome.offscreen.hasDocument()) return;
+  creatingOffscreen ||= chrome.offscreen.createDocument({
+    url: "offscreen.html",
+    reasons: ["AUDIO_PLAYBACK"],
+    justification: "Play the natural-sounding voice audio for text being read aloud.",
+  });
+  try {
+    await creatingOffscreen;
+  } finally {
+    creatingOffscreen = null;
+  }
 }
 
 export function splitIntoChunks(text, max = MAX_CHUNK) {

@@ -59,3 +59,22 @@ button {
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 button.link { border: none; padding: 6px 0; margin-left: auto; color: var(--muted); text-decoration: underline; }
 .hint { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+input[type="password"] {
+  width: 100%;
+  padding: 6px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+section .hint { margin: -4px 0 12px; }
+.error {
+  margin: 0 0 12px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+[hidden] { display: none !important; }
