@@ -19,6 +19,7 @@ dev = ["pytest>=7"]
 
 [project.scripts]
 hushline = "hushline.cli:main"
+hushline-app = "hushline.app:main"
 
 [tool.setuptools.packages.find]
 include = ["hushline*"]

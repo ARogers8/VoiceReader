@@ -2,8 +2,13 @@
 
 Send a message that **looks** like ordinary chatter — *"hey! how's your
 vacation going?"* — but secretly carries a real, encrypted message that only
-someone with the same **code** can read. Works over iMessage, SMS, or any chat
-app that passes text through unchanged.
+someone with the same **code** can read.
+
+There's a **desktop app** (macOS): unlock with your code, pick a contact, type,
+and hit Send — it's encrypted and sent through iMessage for you automatically,
+and replies that carry a hidden message are decrypted in the conversation. See
+**[The desktop app](#the-desktop-app-macos)** below. There's also a CLI and a
+Python library for the same engine.
 
 ```
 you type:     meet me at the pier at 8
@@ -11,13 +16,65 @@ you paste:    hey! how's your vacation going?      ← this is what you send
 they read:    meet me at the pier at 8             ← only with the shared code
 ```
 
-## How it actually works (and an honest limitation)
+## The desktop app (macOS)
 
-iMessage is Apple's closed, end-to-end-encrypted system. **There is no
-supported way to hook into the Messages app and silently intercept or decrypt
-messages in place** — anything claiming to do that relies on brittle private
-APIs that break on every macOS update. So HushLine is a **companion tool**, not
-an iMessage plugin:
+The app does the whole flow for you — no copy/paste.
+
+```
+┌──────────── HushLine ────────────┐
+│  Enter the shared encryption code │
+│  [ •••••••••••••••••••••• ]        │
+│            [ Unlock ]             │
+└───────────────────────────────────┘
+        │  unlock
+        ▼
+┌───────────┬───────────────────────┐
+│ + Add     │  You: meet me at 8     │
+│ contact   │  Alex: on my way       │   ← decrypted in place
+│───────────│                        │
+│ ▸ Alex    │                        │
+│   Sam     │ [ type a message ] Send│   ← sent via iMessage, encrypted
+└───────────┴───────────────────────┘
+```
+
+1. **Unlock** — type your shared encryption code. It stays in memory for the
+   session only; it is never written to disk or sent anywhere.
+2. **Add a contact** — name + iMessage phone (E.164 like `+15551234567`) or
+   Apple ID email. Saved to `~/.hushline/contacts.json` (no secrets in there).
+3. **Send** — type a normal message, hit Send. HushLine encrypts it, hides it
+   in cover text, and the Messages app sends it over iMessage automatically.
+4. **Receive** — a background poller reads new iMessages; any that carry a
+   hidden HushLine payload are decrypted and shown in the conversation. Normal
+   messages are ignored.
+
+### Run it
+
+```bash
+cd HushLine
+pip install -e .          # Tkinter ships with the python.org macOS build
+hushline-app              # or:  python -m hushline.app
+```
+
+### One-time macOS permissions
+
+- **Sending** uses the Messages app via AppleScript. The first send triggers a
+  prompt to let your terminal / Python **control Messages** — click OK (or
+  System Settings → Privacy & Security → **Automation**).
+- **Receiving** reads `~/Library/Messages/chat.db`, which macOS protects. Grant
+  **Full Disk Access** to the app running HushLine (System Settings → Privacy &
+  Security → **Full Disk Access**). HushLine only ever reads this file. Until
+  you do, sending still works; the app just shows a note that it can't read
+  replies yet.
+
+The other device needs HushLine too (or the CLI) and the **same code** — it
+receives a normal-looking iMessage and decrypts the hidden message.
+
+## How it actually works
+
+iMessage is Apple's closed, end-to-end-encrypted system. There is no supported
+way to hook *inside* the Messages app, so HushLine drives it from the outside
+the way macOS supports: **AppleScript automation to send**, and a **read-only
+poll of the local Messages database to receive**. On top of that:
 
 1. **Encryption** (`hushline/crypto.py`) — your real message is encrypted with
    **AES-256-GCM**. The key is derived from your shared code with **scrypt**
@@ -27,9 +84,13 @@ an iMessage plugin:
    **invisible zero-width Unicode characters** and tucked inside a normal-looking
    cover sentence. This is what hides the *existence* of the message from a
    casual reader.
-3. **Clipboard bridge** (`hushline/watcher.py`) — a background watcher turns
-   this into a smooth flow: copy your secret and it swaps your clipboard for the
-   innocent carrier text; copy a received message and it reveals the hidden one.
+3. **iMessage bridge** (`hushline/imessage.py`) — sends carrier text through
+   the Messages app and polls the Messages database to reveal incoming hidden
+   messages. The desktop app (`hushline/app.py`) wires these together.
+
+A clipboard-based CLI watcher (`hushline/watcher.py`) is also included for
+quick use or other chat apps: copy your secret and it swaps your clipboard for
+the carrier; copy a received message and it reveals the hidden one.
 
 The two devices never exchange keys over the wire — they just need the same
 code, shared once, in person or over a channel you already trust.
@@ -118,8 +179,12 @@ HushLine/
     crypto.py    # AES-256-GCM + scrypt key derivation
     stego.py     # zero-width-character steganography
     codes.py     # shared-code generation
+    contacts.py  # on-disk contact book (name + iMessage handle)
+    imessage.py  # macOS: send via Messages automation, read chat.db
+    app.py       # Tkinter desktop app (`hushline-app`)
     cli.py       # `hushline` command
     watcher.py   # background clipboard watcher
   tests/
     test_hushline.py
+    test_imessage.py
 ```
