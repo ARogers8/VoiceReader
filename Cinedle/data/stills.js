@@ -113,3 +113,79 @@ window.STILLS = {
     { t: "Rear Window", y: 1954 },
   ],
 };
+
+// ---------- more movies (same rules as above) ----------
+const _addStills = (level, list) => window.STILLS[level].push(...list.map(([t, y, s]) => (s ? { t, y, s } : { t, y })));
+
+_addStills("easy", [
+  ["Toy Story 2", 1999], ["Toy Story 3", 2010], ["Toy Story 4", 2019], ["Finding Dory", 2016], ["Frozen II", 2019],
+  ["Shrek 2", 2004], ["Monsters, Inc.", 2001], ["The Incredibles", 2004], ["Incredibles 2", 2018], ["Cars", 2006],
+  ["WALL·E", 2008], ["Inside Out", 2015], ["Inside Out 2", 2024], ["Coco", 2017], ["Moana", 2016],
+  ["Encanto", 2021], ["Zootopia", 2016], ["Despicable Me", 2010], ["Minions", 2015], ["Kung Fu Panda", 2008],
+  ["Madagascar", 2005], ["Ice Age", 2002], ["How to Train Your Dragon", 2010], ["Aladdin", 1992], ["Beauty and the Beast", 1991],
+  ["The Little Mermaid", 1989], ["Tangled", 2010], ["Snow White and the Seven Dwarfs", 1937], ["Mulan", 1998], ["The Lego Movie", 2014],
+  ["Spider-Man: No Way Home", 2021], ["Spider-Man: Into the Spider-Verse", 2018], ["Spider-Man 2", 2004], ["Iron Man", 2008], ["Avengers: Infinity War", 2018],
+  ["Black Panther", 2018], ["Guardians of the Galaxy", 2014], ["Captain America: Civil War", 2016], ["Thor: Ragnarok", 2017], ["Deadpool", 2016],
+  ["Wonder Woman", 2017], ["Batman Begins", 2005], ["The Dark Knight Rises", 2012], ["Star Wars: The Force Awakens", 2015], ["The Empire Strikes Back", 1980],
+  ["Return of the Jedi", 1983], ["The Lord of the Rings: The Two Towers", 2002], ["The Lord of the Rings: The Return of the King", 2003], ["Harry Potter and the Chamber of Secrets", 2002], ["Harry Potter and the Prisoner of Azkaban", 2004],
+  ["Harry Potter and the Goblet of Fire", 2005], ["Harry Potter and the Deathly Hallows: Part 2", 2011], ["Jurassic World", 2015], ["Pirates of the Caribbean: Dead Man's Chest", 2006], ["Transformers", 2007],
+  ["Fast Five", 2011], ["Furious 7", 2015], ["Mission: Impossible - Fallout", 2018], ["Top Gun", 1986], ["Mrs. Doubtfire", 1993],
+  ["Elf", 2003], ["How the Grinch Stole Christmas", 2000], ["Night at the Museum", 2006], ["The Princess Diaries", 2001], ["Men in Black", 1997],
+  ["Independence Day", 1996], ["Wicked", 2024], ["Twilight", 2008], ["The Hunger Games: Catching Fire", 2013], ["Mamma Mia!", 2008],
+  ["Pretty Woman", 1990], ["The Notebook", 2004], ["Mary Poppins", 1964], ["The Sound of Music", 1965], ["Charlie and the Chocolate Factory", 2005],
+]);
+
+_addStills("medium", [
+  ["Skyfall", 2012], ["GoldenEye", 1995], ["Goldfinger", 1964], ["The Godfather Part II", 1974], ["Terminator 2: Judgment Day", 1991],
+  ["The Terminator", 1984], ["Die Hard", 1988], ["Indiana Jones and the Last Crusade", 1989], ["Indiana Jones and the Temple of Doom", 1984], ["Gremlins", 1984],
+  ["The Goonies", 1985], ["Ferris Bueller's Day Off", 1986], ["The Breakfast Club", 1985], ["Dirty Dancing", 1987], ["Ghost", 1990],
+  ["Edward Scissorhands", 1990], ["Beetlejuice", 1988], ["Batman", 1989], ["Saving Private Ryan", 1998], ["Schindler's List", 1993],
+  ["The Green Mile", 1999], ["Braveheart", 1995], ["The Wolf of Wall Street", 2013], ["Catch Me If You Can", 2002], ["The Revenant", 2015],
+  ["Shutter Island", 2010], ["The Great Gatsby", 2013], ["Django Unchained", 2012], ["Kill Bill: Vol. 1", 2003], ["Once Upon a Time in Hollywood", 2019],
+  ["The Hangover", 2009], ["Superbad", 2007], ["Anchorman: The Legend of Ron Burgundy", 2004], ["Step Brothers", 2008], ["Bridesmaids", 2011],
+  ["Legally Blonde", 2001], ["The Devil Wears Prada", 2006], ["Clueless", 1995], ["10 Things I Hate About You", 1999], ["Napoleon Dynamite", 2004],
+  ["Dumb and Dumber", 1994], ["Ace Ventura: Pet Detective", 1994], ["The Mask", 1994], ["Groundhog Day", 1993], ["Big", 1988],
+  ["Cast Away", 2000], ["Apollo 13", 1995], ["The Sixth Sense", 1999], ["Gravity", 2013], ["The Martian", 2015],
+  ["Dunkirk", 2017], ["Tenet", 2020], ["Avatar: The Way of Water", 2022], ["Dune: Part Two", 2024], ["John Wick", 2014],
+  ["Logan", 2017], ["Black Swan", 2010], ["Gone Girl", 2014], ["Knives Out", 2019], ["A Quiet Place", 2018],
+  ["It", 2017], ["The Conjuring", 2013], ["Scream", 1996], ["Psycho", 1960], ["The Exorcist", 1973],
+  ["Creed", 2015], ["Ford v Ferrari", 2019], ["Bohemian Rhapsody", 2018], ["The Greatest Showman", 2017], ["A Star Is Born", 2018],
+  ["Good Will Hunting", 1997], ["Dead Poets Society", 1989], ["The Princess Bride", 1987], ["Ocean's Eleven", 2001], ["Kingsman: The Secret Service", 2014],
+]);
+
+_addStills("hard", [
+  ["Reservoir Dogs", 1992], ["Jackie Brown", 1997], ["The Big Lebowski", 1998], ["A Clockwork Orange", 1971], ["Full Metal Jacket", 1987],
+  ["The Usual Suspects", 1995], ["American Beauty", 1999], ["Requiem for a Dream", 2000], ["Trainspotting", 1996], ["American Psycho", 2000],
+  ["Donnie Darko", 2001], ["Pan's Labyrinth", 2006], ["City of God", 2002], ["Princess Mononoke", 1997], ["My Neighbor Totoro", 1988],
+  ["Howl's Moving Castle", 2004], ["Akira", 1988], ["Blade Runner 2049", 2017], ["Ex Machina", 2014], ["District 9", 2009],
+  ["Edge of Tomorrow", 2014], ["Looper", 2012], ["Gattaca", 1997], ["The Fifth Element", 1997], ["RoboCop", 1987],
+  ["Aliens", 1986], ["Predator", 1987], ["Casino", 1995], ["Raging Bull", 1980], ["The Irishman", 2019],
+  ["Killers of the Flower Moon", 2023], ["Scarface", 1983], ["Boogie Nights", 1997], ["Magnolia", 1999], ["Fantastic Mr. Fox", 2009],
+  ["Moonrise Kingdom", 2012], ["The Royal Tenenbaums", 2001], ["Baby Driver", 2017], ["Shaun of the Dead", 2004], ["Hot Fuzz", 2007],
+  ["Nightcrawler", 2014], ["Uncut Gems", 2019], ["Hereditary", 2018], ["Midsommar", 2019], ["Us", 2019],
+  ["Nope", 2022], ["The Witch", 2015], ["Birdman", 2014], ["Lady Bird", 2017], ["Little Women", 2019],
+  ["Past Lives", 2023], ["Poor Things", 2023], ["The Banshees of Inisherin", 2022], ["Tár", 2022], ["Anora", 2024],
+  ["The Holdovers", 2023], ["Marriage Story", 2019], ["Call Me by Your Name", 2017], ["12 Years a Slave", 2013], ["Spotlight", 2015],
+  ["Gran Torino", 2008], ["Million Dollar Baby", 2004], ["Unforgiven", 1992], ["True Grit", 2010], ["O Brother, Where Art Thou?", 2000],
+  ["Big Fish", 2003], ["Train to Busan", 2016], ["Crouching Tiger, Hidden Dragon", 2000], ["Your Name.", 2016], ["Snowpiercer", 2013],
+  ["The Favourite", 2018], ["Jojo Rabbit", 2019], ["Three Billboards Outside Ebbing, Missouri", 2017], ["Collateral", 2004], ["Léon: The Professional", 1994],
+]);
+
+_addStills("impossible", [
+  ["North by Northwest", 1959], ["The Birds", 1963], ["Rebecca", 1940], ["Sunset Boulevard", 1950], ["Some Like It Hot", 1959],
+  ["Singin' in the Rain", 1952], ["Roman Holiday", 1953], ["Breakfast at Tiffany's", 1961], ["Ben-Hur", 1959], ["The Good, the Bad and the Ugly", 1966],
+  ["Once Upon a Time in the West", 1968], ["The Searchers", 1956], ["High Noon", 1952], ["It's a Wonderful Life", 1946], ["12 Angry Men", 1957],
+  ["Doctor Zhivago", 1965], ["The Bridge on the River Kwai", 1957], ["Rashomon", 1950], ["Ran", 1985], ["Yojimbo", 1961],
+  ["Ikiru", 1952], ["Tokyo Story", 1953], ["Bicycle Thieves", 1948], ["8½", 1963], ["La Dolce Vita", 1960],
+  ["The 400 Blows", 1959], ["Breathless", 1960], ["Persona", 1966], ["The Seventh Seal", 1957], ["Metropolis", 1927],
+  ["Nosferatu", 1922], ["M", 1931], ["Sunrise: A Song of Two Humans", 1927], ["City Lights", 1931], ["Modern Times", 1936],
+  ["The General", 1926], ["The Third Man", 1949], ["Double Indemnity", 1944], ["The Maltese Falcon", 1941], ["Touch of Evil", 1958],
+  ["Network", 1976], ["Dog Day Afternoon", 1975], ["The Conversation", 1974], ["The Deer Hunter", 1978], ["Days of Heaven", 1978],
+  ["Badlands", 1973], ["The Tree of Life", 2011], ["Stalker", 1979], ["Solaris", 1972], ["Come and See", 1985],
+  ["Chungking Express", 1994], ["Memories of Murder", 2003], ["Burning", 2018], ["Shoplifters", 2018], ["Drive My Car", 2021],
+  ["Under the Skin", 2013], ["The Master", 2012], ["Phantom Thread", 2017], ["Inherent Vice", 2014], ["Synecdoche, New York", 2008],
+  ["Being John Malkovich", 1999], ["Adaptation.", 2002], ["Blue Velvet", 1986], ["Eraserhead", 1977], ["Videodrome", 1983],
+  ["The Fly", 1986], ["The Night of the Hunter", 1955], ["Paths of Glory", 1957], ["Eyes Wide Shut", 1999], ["Brazil", 1985],
+  ["The Elephant Man", 1980], ["Wild Strawberries", 1957], ["The Zone of Interest", 2023], ["Aftersun", 2022], ["The Assassination of Jesse James by the Coward Robert Ford", 2007],
+  ["First Reformed", 2017],
+]);
