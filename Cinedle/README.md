@@ -18,16 +18,28 @@ Guessing works like Songless: start typing and pick the movie from the dropdown.
 ## Running it
 
 Open `index.html` in a browser, or serve the folder (`npx serve .` / `python3 -m http.server`).
-Quotes work with no setup.
+Quotes work with no setup. Stills work once the images have been built (below).
 
-### Stills setup
+### Stills setup (one time, nobody else ever needs a key)
 
-Movie frames come from [TMDB](https://www.themoviedb.org/). Get a free API key
-(themoviedb.org → Settings → API) and either paste it into the in-game Settings (saved only in
-that browser) or put it in `config.js` so every visitor gets the Stills game.
+Movie frames come from [TMDB](https://www.themoviedb.org/). Your API key lives only in GitHub's
+encrypted secrets. A GitHub Action uses it to look up 6 frames per movie and saves the image
+links to `data/stills-images.js`. The website only reads that file, so players never see or
+need a key.
 
-Frame order is picked automatically: TMDB's highest-voted textless backdrops (the iconic shots)
-become the easy final frames, and random lesser-voted ones become the hard opening frames.
+1. Repo **Settings → Secrets and variables → Actions → New repository secret**.
+   Name: `TMDB_KEY`. Value: your TMDB key (the long "API Read Access Token" or the short v3 key).
+2. **Actions** tab → **Build Cinedle stills** → run it (or re-run the latest failed run if it
+   ran before the secret existed). It takes a few minutes and commits `stills-images.js`.
+3. It runs again by itself whenever you add movies to `data/stills.js`, and only fetches the new
+   ones. Tick "Redo every movie" when running it by hand to rebuild everything.
+
+Frame order: TMDB's highest-voted textless backdrops (the iconic shots) become the easy final
+frames, and random lesser-voted ones become the hard opening frames. To fix a movie's order, edit
+its `images` list in `data/stills-images.js` (hardest first). Your edits are kept on later runs.
+If TMDB ever deletes an image, the game skips it.
+
+To run it on your own computer instead: `TMDB_KEY=your_key node Cinedle/scripts/build-stills.mjs`
 
 ### Hand-picking frames
 
@@ -41,6 +53,8 @@ Bond), add a `stills` array to the movie in `data/stills.js`, hardest first:
 ```
 
 Hand-picked stills skip TMDB entirely.
+
+The site must show the TMDB credit in its footer (already there) to use TMDB images.
 
 ## Editing the content
 

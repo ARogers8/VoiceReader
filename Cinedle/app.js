@@ -51,8 +51,15 @@
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   const dayNumber = () => { const d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
 
-  function pickPuzzle(mode, level, type) {
-    const list = (mode === "quotes" ? window.QUOTES : window.STILLS)[level];
+  // Stills only uses movies that have images (hand-picked or in stills-images.js).
+  const IMAGE_BASE = "https://image.tmdb.org/t/p/";
+  const builtImages = window.STILL_IMAGES || {};
+  function puzzlesFor(mode, level) {
+    if (mode === "quotes") return window.QUOTES[level];
+    return window.STILLS[level].filter((m) => (m.stills && m.stills.length) || builtImages[idOf(m.t, m.y)]);
+  }
+
+  function pickPuzzle(list, mode, level, type) {
     if (type === "daily") {
       const order = shuffle(list.map((_, i) => i), rng(hash(`cinedle-${mode}-${level}`)));
       return order[dayNumber() % order.length];
@@ -65,50 +72,11 @@
     return idx;
   }
 
-  // ---------- TMDB ----------
-  const getKey = () => (window.CINEDLE_CONFIG && window.CINEDLE_CONFIG.tmdbKey) || load("tmdbKey", "");
-  async function tmdb(path, params = {}) {
-    const key = getKey();
-    const url = new URL("https://api.themoviedb.org/3" + path);
-    const headers = { accept: "application/json" };
-    if (/^[a-f0-9]{32}$/i.test(key)) url.searchParams.set("api_key", key);
-    else headers.Authorization = "Bearer " + key;
-    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(res.status === 401 ? "bad-key" : "tmdb-" + res.status);
-    return res.json();
-  }
-
   // Returns { images: [hardest ... easiest], poster }
-  async function getStills(p) {
-    if (p.stills && p.stills.length) return { images: p.stills, poster: p.poster || null };
-    const cacheKey = "tmdb:" + idOf(p.t, p.y);
-    const cached = load(cacheKey, null);
-    if (cached) return cached;
-
-    const search = await tmdb("/search/movie", { query: p.s || p.t, primary_release_year: p.y, include_adult: "false" });
-    let movie = search.results && search.results[0];
-    if (!movie) {
-      const loose = await tmdb("/search/movie", { query: p.s || p.t });
-      movie = (loose.results || []).find((r) => (r.release_date || "").startsWith(String(p.y))) || (loose.results || [])[0];
-    }
-    if (!movie) throw new Error("not-found");
-
-    const imgs = await tmdb(`/movie/${movie.id}/images`, { include_image_language: "null,en" });
-    let backs = (imgs.backdrops || []).filter((b) => b.iso_639_1 === null); // textless = no title card
-    if (backs.length < 6) backs = backs.concat((imgs.backdrops || []).filter((b) => b.iso_639_1 !== null));
-    // Most-voted backdrops are the iconic shots → easiest. Least-voted are random frames → hardest.
-    backs.sort((a, b) => (b.vote_average - a.vote_average) || (b.vote_count - a.vote_count));
-    const easy = backs.slice(0, 3);
-    const rest = shuffle(backs.slice(3), rng(movie.id));
-    const hard = rest.slice(0, 3);
-    while (hard.length < 3 && easy.length > 1) hard.push(easy.pop());
-    const ordered = [...hard, ...easy.reverse()].map((b) => "https://image.tmdb.org/t/p/w1280" + b.file_path);
-    if (!ordered.length) throw new Error("no-images");
-
-    const out = { images: ordered, poster: movie.poster_path ? "https://image.tmdb.org/t/p/w342" + movie.poster_path : null };
-    save(cacheKey, out);
-    return out;
+  function stillsFor(p) {
+    if (p.stills && p.stills.length) return { images: p.stills.slice(), poster: p.poster || null };
+    const b = builtImages[idOf(p.t, p.y)];
+    return { images: b.images.map((f) => IMAGE_BASE + "w1280" + f), poster: b.poster ? IMAGE_BASE + "w342" + b.poster : null };
   }
 
   // ---------- app state ----------
@@ -125,32 +93,29 @@
 
   function start(forceNew = false) {
     const { mode, level, type } = prefs;
-    const list = (mode === "quotes" ? window.QUOTES : window.STILLS)[level];
-    let saved = type === "daily" ? load(dailyKey(), null) : null;
-    const idx = saved ? saved.idx : (type === "endless" && !forceNew && game && game.mode === mode && game.level === level && game.type === type && !game.done ? game.idx : pickPuzzle(mode, level, type));
-    game = { mode, level, type, idx, puzzle: list[idx], guesses: saved ? saved.guesses : [], done: saved ? saved.done : false, won: saved ? saved.won : false, stills: null, view: 0 };
+    const list = puzzlesFor(mode, level);
     syncChrome();
+    if (!list.length) { game = null; renderEmpty(); return; }
+    const saved = type === "daily" ? load(dailyKey(), null) : null;
+    const keep = type === "endless" && !forceNew && game && game.mode === mode && game.level === level && game.type === type && !game.done;
+    const idx = saved && list[saved.idx] ? saved.idx : keep ? game.idx : pickPuzzle(list, mode, level, type);
+    const puzzle = list[idx];
+    const useSaved = saved && list[saved.idx];
+    game = { mode, level, type, idx, puzzle, guesses: useSaved ? saved.guesses : [], done: useSaved ? saved.done : false, won: useSaved ? saved.won : false, stills: null, view: 0 };
+    if (mode === "stills") {
+      game.stills = stillsFor(puzzle);
+      game.stills.images.forEach((src) => { const i = new Image(); i.src = src; });
+    }
     render();
-    if (mode === "stills") loadStills();
+  }
+
+  function renderEmpty() {
+    els.stage.innerHTML = `<div class="setup"><h3>Stills are on the way</h3><p>No movie frames have been generated yet. Run the <b>Build Cinedle stills</b> GitHub Action (see the README) and they'll show up here.</p></div>`;
+    els.attempts.innerHTML = ""; els.guesses.innerHTML = ""; els.bar.hidden = true; els.result.hidden = true;
   }
 
   function persist() {
     if (game.type === "daily") save(dailyKey(), { idx: game.idx, guesses: game.guesses, done: game.done, won: game.won });
-  }
-
-  async function loadStills() {
-    const g = game;
-    if (!getKey() && !(g.puzzle.stills && g.puzzle.stills.length)) { g.stills = { error: "no-key" }; render(); return; }
-    try {
-      const s = await getStills(g.puzzle);
-      if (g !== game) return;
-      g.stills = s;
-      s.images.forEach((src) => { const i = new Image(); i.src = src; });
-    } catch (e) {
-      if (g !== game) return;
-      g.stills = { error: e.message };
-    }
-    render();
   }
 
   // ---------- rendering ----------
@@ -182,12 +147,9 @@
       return `<li class="${r.type}"><span class="ico">${r.type === "right" ? "✓" : "✕"}</span>${esc(r.t)}<span class="yr">${r.y}</span></li>`;
     }).join("");
 
-    const blocked = g.mode === "stills" && (!g.stills || g.stills.error);
-    els.bar.hidden = !!(g.done || (g.mode === "stills" && g.stills && g.stills.error));
+    els.bar.hidden = g.done;
     els.skip.textContent = used === max - 1 ? "Give up" : (g.mode === "stills" ? "Skip (next still)" : "Skip (+hint)");
-    els.skip.disabled = blocked;
-    els.input.disabled = blocked;
-    if (!g.done && !blocked && document.activeElement !== els.input && window.matchMedia("(pointer: fine)").matches) els.input.focus();
+    if (!g.done && document.activeElement !== els.input && window.matchMedia("(pointer: fine)").matches) els.input.focus();
 
     renderResult(g);
   }
@@ -212,24 +174,6 @@
 
   function renderStills(g) {
     const s = g.stills;
-    if (!s) { els.stage.innerHTML = `<div class="frame"><div class="frame-msg">Loading stills…</div></div>`; return; }
-    if (s.error) {
-      const msg = s.error === "no-key" ? "Stills come from The Movie Database. Paste a free TMDB API key to start playing."
-        : s.error === "bad-key" ? "That TMDB key was rejected. Double-check it and try again."
-        : "Couldn't load stills for this one. Check your connection or try another.";
-      els.stage.innerHTML = `
-        <div class="setup">
-          <h3>${s.error === "no-key" || s.error === "bad-key" ? "Connect TMDB" : "Something went wrong"}</h3>
-          <p>${msg}</p>
-          ${s.error === "no-key" || s.error === "bad-key" ? `<div class="row"><input type="text" id="inlineKey" placeholder="TMDB API key" spellcheck="false" /><button class="btn primary" id="inlineSave">Save</button></div>
-          <p class="small" style="margin-top:12px">Free at themoviedb.org → Settings → API</p>` : `<button class="btn ghost" id="retryBtn">Try another</button>`}
-        </div>`;
-      const btn = $("#inlineSave");
-      if (btn) btn.onclick = () => { const v = $("#inlineKey").value.trim(); if (v) { save("tmdbKey", v); start(true); } };
-      const retry = $("#retryBtn");
-      if (retry) retry.onclick = () => { prefs.type = "endless"; save("prefs", prefs); start(true); };
-      return;
-    }
     const n = s.images.length;
     const unlocked = g.done ? n : Math.min(g.guesses.length + 1, n);
     if (g.view >= unlocked || g._lastUnlocked !== unlocked) g.view = unlocked - 1;
@@ -246,7 +190,11 @@
     const img = els.stage.querySelector("img");
     const ready = () => img.classList.remove("loading");
     if (img.complete) ready(); else img.onload = ready;
-    img.onerror = () => { img.closest(".frame").insertAdjacentHTML("beforeend", `<div class="frame-msg">Image failed to load</div>`); };
+    img.onerror = () => {
+      // TMDB occasionally removes an image; drop it and show the next one.
+      if (s.images.length > 1) { s.images.splice(g.view, 1); g._lastUnlocked = -1; renderStills(g); }
+      else img.closest(".frame").insertAdjacentHTML("beforeend", `<div class="frame-msg">Image failed to load</div>`);
+    };
     els.stage.querySelectorAll(".thumb").forEach((b) => b.onclick = () => { g.view = +b.dataset.i; g._lastUnlocked = unlocked; renderStills(g); });
   }
 
@@ -390,10 +338,6 @@
   document.querySelectorAll(".mode").forEach((b) => b.onclick = () => { prefs.mode = b.dataset.mode; save("prefs", prefs); clearInput(); start(true); });
   document.querySelectorAll(".level").forEach((b) => b.onclick = () => { prefs.level = b.dataset.level; save("prefs", prefs); clearInput(); start(true); });
   document.querySelectorAll(".pt").forEach((b) => b.onclick = () => { prefs.type = b.dataset.type; save("prefs", prefs); clearInput(); start(true); });
-
-  const dlg = $("#settings");
-  $("#settingsBtn").onclick = () => { $("#tmdbKey").value = load("tmdbKey", ""); dlg.showModal(); };
-  $("#saveKey").onclick = () => { save("tmdbKey", $("#tmdbKey").value.trim()); if (prefs.mode === "stills") setTimeout(() => start(true)); };
 
   let toastTimer;
   function toast(msg) { els.toast.textContent = msg; els.toast.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove("show"), 1600); }

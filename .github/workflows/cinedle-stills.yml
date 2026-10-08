@@ -1,0 +1,47 @@
+name: Build Cinedle stills
+
+# Looks up movie frames on TMDB using the TMDB_KEY repo secret and commits
+# Cinedle/data/stills-images.js. The key never ends up in the website.
+on:
+  workflow_dispatch:
+    inputs:
+      refresh:
+        description: "Redo every movie (overwrites hand edits)"
+        type: boolean
+        default: false
+  push:
+    paths:
+      - "Cinedle/data/stills.js"
+      - "Cinedle/scripts/build-stills.mjs"
+      - ".github/workflows/cinedle-stills.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cinedle-stills-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch stills from TMDB
+        env:
+          TMDB_KEY: ${{ secrets.TMDB_KEY }}
+        run: node Cinedle/scripts/build-stills.mjs ${{ inputs.refresh && '--refresh' || '' }}
+      - name: Commit stills-images.js
+        run: |
+          if git diff --quiet -- Cinedle/data/stills-images.js; then
+            echo "No changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add Cinedle/data/stills-images.js
+          git commit -m "Cinedle: update stills from TMDB"
+          git push
