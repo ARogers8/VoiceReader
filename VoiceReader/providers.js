@@ -62,39 +62,34 @@ async function checkAudio(res, service) {
   throw new Error(`${service} error ${res.status}${detail ? `: ${detail}` : ""}`);
 }
 
-// Neural voices sound best with whole paragraphs, so text is split on
-// paragraph breaks and only long paragraphs are split further, at sentence
-// ends. Fewer, larger chunks mean fewer audible seams.
-export function splitForNarration(text, max = 1200) {
-  const paragraphs = text
-    .split(/\n\s*\n|\r\n\s*\r\n/)
-    .map((p) => p.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
+// Neural voices only return audio once a whole chunk is generated, so a big
+// first chunk means a long silence before reading starts. The first chunk is
+// kept to a sentence or two and each later chunk may be twice as long (up to
+// max), so audio starts quickly and later chunks are generated while earlier
+// ones play. Chunks break at sentence ends and keep paragraph breaks.
+export function splitForNarration(text, { first = 220, max = 1200 } = {}) {
+  const sentences = [];
+  for (const paragraph of text.split(/\n\s*\n|\r\n\s*\r\n/)) {
+    const clean = paragraph.replace(/\s+/g, " ").trim();
+    if (!clean) continue;
+    const parts = clean.match(/[^.!?。！？]+[.!?。！？]*["'”’)\]]*\s*/g) || [clean];
+    parts.map((p) => p.trim()).filter(Boolean).forEach((sentence, i) => {
+      sentences.push({ sentence, startsParagraph: i === 0 });
+    });
+  }
 
   const chunks = [];
   let current = "";
-  const push = () => {
-    if (current) chunks.push(current);
-    current = "";
-  };
-
-  for (const paragraph of paragraphs) {
-    if (paragraph.length > max) {
-      push();
-      const sentences = paragraph.match(/[^.!?。！？]+[.!?。！？]*["'”’)\]]*\s*/g) || [paragraph];
-      for (const sentence of sentences) {
-        if (current && (current + sentence).length > max) push();
-        current += sentence;
-      }
-      current = current.trim();
-      push();
-    } else if (current && (current + "\n\n" + paragraph).length > max) {
-      push();
-      current = paragraph;
+  for (const { sentence, startsParagraph } of sentences) {
+    const limit = Math.min(max, first * 2 ** chunks.length);
+    const joined = current ? current + (startsParagraph ? "\n\n" : " ") + sentence : sentence;
+    if (current && joined.length > limit) {
+      chunks.push(current);
+      current = sentence;
     } else {
-      current = current ? `${current}\n\n${paragraph}` : paragraph;
+      current = joined;
     }
   }
-  push();
+  if (current) chunks.push(current);
   return chunks;
 }

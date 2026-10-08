@@ -19,8 +19,9 @@ Pick a **Voice type** in the settings panel:
 - **OpenAI natural voices**: paste an OpenAI API key. Voices are prompted to
   read like a calm audiobook narrator. Billed per use by OpenAI.
 
-With the natural voices, text is sent a paragraph at a time and the next
-paragraph is fetched while the current one plays, so reading flows without
+With the natural voices, reading starts with just the first sentence or two
+so you hear it within seconds, then later parts are sent in bigger pieces
+(up to about a paragraph) while earlier ones play, so reading flows without
 gaps. API keys are stored only on this computer (`chrome.storage.local`) and
 are sent only to the service you picked. If something goes wrong (a bad key,
 no credits left), the error shows at the top of the settings panel and a red
