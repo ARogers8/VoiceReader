@@ -1,5 +1,6 @@
 import { loadSettings } from "./settings.js";
 import { splitForNarration } from "./providers.js";
+import { readCleanSelection } from "./selection.js";
 
 const MENU_READ = "voicereader-read";
 const MENU_STOP = "voicereader-stop";
@@ -65,7 +66,7 @@ async function getSelectionFromTab(tab) {
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
-      func: () => window.getSelection()?.toString() ?? "",
+      func: readCleanSelection, // skips ads and other page clutter in the selection
     });
     return results.map((r) => r.result).find((t) => t && t.trim()) || "";
   } catch {

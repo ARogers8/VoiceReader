@@ -35,6 +35,8 @@ no credits left), the error shows at the top of the settings panel and a red
 - Keyboard shortcuts: `Alt+Shift+R` reads the selection, `Alt+Shift+S` stops
   (change them at `chrome://extensions/shortcuts`)
 - Long selections are split into sentences so they don't cut off partway
+- Ads and page clutter caught in a selection (ad slots, "related stories", newsletter
+  boxes, share buttons, captions) are skipped, so news articles read cleanly
 
 Settings are saved with `chrome.storage.sync`, so they follow you to other
 computers where you're signed in to Chrome.
@@ -58,6 +60,7 @@ After changing any files, click the reload icon on the VoiceReader card in
 | `background.js` | Service worker: context menu, shortcuts, speaking |
 | `settings.js` | Default settings, storage helpers, voice lists |
 | `providers.js` | ElevenLabs and OpenAI requests, paragraph chunking |
+| `selection.js` | Reads the highlighted text from the page, skipping ads and clutter |
 | `offscreen.html` / `offscreen.js` | Hidden page that plays natural-voice audio |
 | `popup.html` / `popup.css` / `popup.js` | Settings popup (also the options page) |
 | `icons/` | Toolbar and store icons |
