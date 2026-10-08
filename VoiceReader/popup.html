@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceReader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon32.png" alt="" width="24" height="24">
+    <h1>VoiceReader</h1>
+  </header>
+
+  <p id="error" class="error" hidden></p>
+
+  <label class="field">
+    <span>Voice type</span>
+    <select id="provider">
+      <option value="chrome">Built-in voices (free, works offline)</option>
+      <option value="elevenlabs">ElevenLabs natural voices (API key)</option>
+      <option value="openai">OpenAI natural voices (API key)</option>
+    </select>
+  </label>
+
+  <section data-provider="chrome">
+    <label class="field">
+      <span>Voice</span>
+      <select id="voiceName"><option value="">Default voice</option></select>
+    </label>
+    <p class="hint">Voices marked “Natural” or “Online” sound the most human.
+      Microsoft Edge has free natural voices; this extension works there too.</p>
+  </section>
+
+  <section data-provider="elevenlabs">
+    <label class="field">
+      <span>ElevenLabs API key</span>
+      <input id="elevenlabsKey" type="password" placeholder="Paste your key" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>Voice</span>
+      <select id="elevenlabsVoiceId"></select>
+    </label>
+    <p class="hint">Get a key at elevenlabs.io (free tier included). Voices you add
+      from their Voice Library show up here too.</p>
+  </section>
+
+  <section data-provider="openai">
+    <label class="field">
+      <span>OpenAI API key</span>
+      <input id="openaiKey" type="password" placeholder="sk-…" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>Voice</span>
+      <select id="openaiVoice"></select>
+    </label>
+    <p class="hint">Get a key at platform.openai.com. Billed per use by OpenAI.</p>
+  </section>
+
+  <label class="field">
+    <span>Speed <output id="rateOut"></output></span>
+    <input id="rate" type="range" min="0.5" max="3" step="0.05">
+  </label>
+
+  <label class="field" data-provider="chrome">
+    <span>Pitch <output id="pitchOut"></output></span>
+    <input id="pitch" type="range" min="0" max="2" step="0.1">
+  </label>
+
+  <label class="field">
+    <span>Volume <output id="volumeOut"></output></span>
+    <input id="volume" type="range" min="0" max="1" step="0.05">
+  </label>
+
+  <label class="field">
+    <span>Test passage</span>
+    <textarea id="sample" rows="3">The rain had stopped by the time she reached the old house. She paused at the gate, listening to the quiet, and for a moment, everything felt still.</textarea>
+  </label>
+
+  <div class="buttons">
+    <button id="test" class="primary">Play test</button>
+    <button id="stop">Stop</button>
+    <button id="reset" class="link">Reset to defaults</button>
+  </div>
+
+  <p class="hint">Highlight text on any page, right-click, and choose
+    <strong>Read aloud with VoiceReader</strong>. Shortcuts: Alt+Shift+R to read,
+    Alt+Shift+S to stop.</p>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

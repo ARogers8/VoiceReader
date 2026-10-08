@@ -1,0 +1,80 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1f2937;
+  --muted: #6b7280;
+  --border: #d1d5db;
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f2125;
+    --fg: #e5e7eb;
+    --muted: #9ca3af;
+    --border: #3f434a;
+    --accent: #3b82f6;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  width: 320px;
+  max-width: 100%;
+  font: 14px/1.4 system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+/* When opened as the full options page, center it instead of stretching. */
+@media (min-width: 400px) {
+  body { margin: 32px auto; }
+}
+header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+h1 { font-size: 18px; margin: 0; }
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.field > span { display: flex; justify-content: space-between; font-weight: 600; }
+output { font-weight: 400; color: var(--muted); }
+select, textarea {
+  width: 100%;
+  padding: 6px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+textarea { resize: vertical; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.buttons { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+button {
+  padding: 6px 12px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+button.link { border: none; padding: 6px 0; margin-left: auto; color: var(--muted); text-decoration: underline; }
+.hint { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+input[type="password"] {
+  width: 100%;
+  padding: 6px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+section .hint { margin: -4px 0 12px; }
+.error {
+  margin: 0 0 12px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+[hidden] { display: none !important; }

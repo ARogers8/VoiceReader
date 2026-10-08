@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "VoiceReader",
+  "version": "1.1.0",
+  "description": "Highlight text, right-click, and have it read aloud. Choose the voice, speed, pitch and volume.",
+  "permissions": ["contextMenus", "tts", "storage", "scripting", "activeTab", "offscreen"],
+  "host_permissions": ["https://api.elevenlabs.io/*", "https://api.openai.com/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "VoiceReader",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "popup.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "read-selection": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Read the highlighted text aloud"
+    },
+    "stop-reading": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Stop reading"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
