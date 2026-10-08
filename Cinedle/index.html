@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cinedle — guess the movie</title>
+  <meta name="description" content="Guess the movie from a famous quote or a still frame." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">CINE<span>DLE</span></div>
+    <nav class="modes" role="tablist">
+      <button class="mode" data-mode="quotes" role="tab">Quotes</button>
+      <button class="mode" data-mode="stills" role="tab">Stills</button>
+    </nav>
+    <span class="top-spacer"></span>
+  </header>
+
+  <main>
+    <div class="controls">
+      <div class="levels" id="levels">
+        <button class="level" data-level="easy">Easy</button>
+        <button class="level" data-level="medium">Medium</button>
+        <button class="level" data-level="hard">Hard</button>
+        <button class="level" data-level="impossible">Impossible</button>
+      </div>
+      <div class="play-type">
+        <button class="pt" data-type="daily">Daily</button>
+        <button class="pt" data-type="endless">Endless</button>
+      </div>
+    </div>
+
+    <section id="stage"></section>
+
+    <div class="attempts" id="attempts"></div>
+    <ol class="guesses" id="guesses"></ol>
+
+    <div class="guess-bar" id="guessBar">
+      <div class="search">
+        <svg class="search-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="guessInput" type="text" autocomplete="off" spellcheck="false" placeholder="Know it? Search for the movie" />
+        <ul class="suggestions" id="suggestions" role="listbox"></ul>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="skipBtn">Skip</button>
+        <button class="btn primary" id="submitBtn" disabled>Submit</button>
+      </div>
+    </div>
+
+    <section class="result" id="result" hidden></section>
+  </main>
+
+  <footer class="credit">
+    Stills from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>.
+    This product uses the TMDB API but is not endorsed or certified by TMDB.
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="data/quotes.js"></script>
+  <script src="data/stills.js"></script>
+  <script src="data/stills-images.js"></script>
+  <script src="data/movies.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
