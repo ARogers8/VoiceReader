@@ -1,6 +1,5 @@
-# projects
+# VoiceReader
 
-A collection of projects.
+A Chrome extension that reads highlighted text aloud. The code is in [VoiceReader/](VoiceReader/).
 
-- [VoiceReader](VoiceReader/) — Chrome extension that reads highlighted text aloud.
-- [Cinedle](Cinedle/) — Songless/Worldle-style movie guessing game (quotes and stills).
+Looking for the movie guessing game? Cinedle moved to [ARogers8/Cinedle](https://github.com/ARogers8/Cinedle).
