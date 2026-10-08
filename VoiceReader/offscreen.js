@@ -26,16 +26,24 @@ async function play(chunks, settings) {
       nextText: chunks[i + 1],
     });
 
+  // Keep up to two chunks generating ahead of the one playing, so later
+  // (bigger) chunks are ready before they're needed.
+  const LOOKAHEAD = 2;
+  const pending = new Map();
+  const request = (i) => {
+    if (i >= chunks.length || pending.has(i)) return;
+    const p = fetchChunk(i);
+    p.catch(() => {}); // surfaced when awaited
+    pending.set(i, p);
+  };
+
   try {
-    let next = fetchChunk(0);
+    for (let i = 0; i < LOOKAHEAD && i < chunks.length; i++) request(i);
     for (let i = 0; i < chunks.length; i++) {
-      const blob = await next;
+      const blob = await pending.get(i);
+      pending.delete(i);
       if (mine !== session) return;
-      // Request the next chunk while this one plays so there's no gap.
-      if (i + 1 < chunks.length) {
-        next = fetchChunk(i + 1);
-        next.catch(() => {}); // surfaced when awaited
-      }
+      request(i + LOOKAHEAD);
       await playBlob(blob, settings.volume);
       if (mine !== session) return;
     }
