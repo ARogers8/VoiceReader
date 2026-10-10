@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 
 from . import DecryptionError, StegoError, conceal, recover
 from . import imessage
+from . import covers
 from .contacts import Contact, ContactBook
 
 POLL_INTERVAL = 2.0  # seconds between chat.db checks
@@ -103,7 +104,9 @@ class HushLineApp:
         self.simpledialog = simpledialog
 
         self.code: str | None = None
-        self.cover = DEFAULT_COVER
+        # None => auto-rotate through covers.COVERS so each message looks like a
+        # different, natural text. Setting a pinned cover overrides rotation.
+        self.cover: str | None = None
         self.contacts = ContactBook()
         self.log = ChatLog()
         self.current: Contact | None = None
@@ -233,10 +236,10 @@ class HushLineApp:
     def _edit_cover(self) -> None:
         new = self.simpledialog.askstring(
             "Cover text",
-            "Innocent text your messages will appear as:",
-            initialvalue=self.cover, parent=self.root)
-        if new:
-            self.cover = new
+            "Pin one cover line, or leave blank to auto-vary each message:",
+            initialvalue=self.cover or "", parent=self.root)
+        # Blank -> back to auto-rotation; otherwise pin the chosen line.
+        self.cover = new.strip() if new and new.strip() else None
 
     def _on_select_contact(self, _event) -> None:
         sel = self.contact_list.curselection()
@@ -277,7 +280,8 @@ class HushLineApp:
         if not message:
             return
         try:
-            carrier = conceal(message, self.code, cover=self.cover)
+            cover = self.cover or covers.next_cover()
+            carrier = conceal(message, self.code, cover=cover)
         except Exception as exc:  # pragma: no cover - defensive
             self.messagebox.showerror("HushLine", f"Encryption failed: {exc}")
             return
